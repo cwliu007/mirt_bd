@@ -105,7 +105,7 @@ Check the non-convergence of MCMC chains by `gelman.diag` function from `coda` w
 gelman.diag(out$samples_items, confidence = 0.95, transform=FALSE, autoburnin=TRUE, multivariate=FALSE)
 ```
 
-The `WAIC` for model comparison: `out$WAIC`
+Model comparison criterion: `out$WAIC`
 
 Item fit:
 * outfit: `out$ppp_outfit_item`
