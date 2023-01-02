@@ -100,7 +100,7 @@ out = mcmc_main(response = d$response  # <---- your data matrix
 ```
 If you want to analyze your data, just replace `d$response` with your data. Make sure to change `testlet`, `itemnum`, and other arguments if needed. 
 
-Check if convergence problem occured by `gelman.diag` function from `coda` when `nchains` > 1:
+Check the non-convergence of MCMC chains by `gelman.diag` function from `coda` when `nchains` > 1:
 ```
 gelman.diag(out$samples_items, confidence = 0.95, transform=FALSE, autoburnin=TRUE, multivariate=FALSE)
 ```
