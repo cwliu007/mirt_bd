@@ -15,7 +15,7 @@ Following are the arguments of the main function: `mcmc_main`
 
 `response`:
 * Item-response matrix (row: *sample size*, column: *number of items* by *number of testlets*). By default, `NULL`. 
-* For instance, *number of items* = 2 and *number of testlets* = 3 means that the first two columns contain the item responses of the first testlet, and the second and third testlets are concatenated in column order. 
+* For instance, *number of items* = 2 and *number of testlets* = 3 means that the first two columns contain the item responses of the first testlet, and the second and third testlets are concatenated in column order. The resulting size of the `response` is *sample size* by *number of items x number of testlets*. 
 
 `rand.seed`:
 * Set the seed of R‘s random number generator. In effect, it is `set.seed(rand.seed)`. 
