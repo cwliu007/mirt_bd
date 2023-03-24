@@ -1,5 +1,5 @@
 # Instructions: (Updating the code ...)
-Instructions for running the models proposed in my paper (UNDER REVISION): *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data*. 
+Instructions for running the models proposed in my paper (UNDER REVIEW): *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data*. 
 
 # Step 1:
 Install the following R packages: `install.packages(c("mvtnorm","randcorr","MASS","nimble","evaluate","Rcpp","coda"))`
@@ -69,6 +69,12 @@ Following are the arguments of the main function: `mcmc_main`
 
 `waic_nimble = TRUE`:
 * Obtain the WAIC from NIMBLE.
+
+`sigma_item_cor_zeros = FALSE`:
+* For internal experiments, which can be omitted.
+
+`mcmc_length_add = 0`:
+* For internal experiments, which can be omitted.
 
 # Step 3: Carry out an example
 1. Simulate data:
