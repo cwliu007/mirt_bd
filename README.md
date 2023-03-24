@@ -197,7 +197,7 @@ index_alpha =
 [5,]   4   2
 [6,]   6   2
 ```
-which indicates `alpha[1,1]`, `alpha[3,1]`, and so on, are estimated. It also means the rest of alpha elements are not estimated and set equal to zeros:
+which indicates `alpha[1,1]`, `alpha[3,1]`, ..., and so on, are estimated. It also means the rest of alpha elements are not estimated and set equal to zeros:
 ```
 index_zero = 
     row col
@@ -208,10 +208,29 @@ index_zero =
 [5,]   3   2
 [6,]   5   2
 ```
-`index_alpha` and `index_zero` are equal to the row number of `index_alpha` and `index_zero`, which is 6 in this case. 
+`index_alpha` and `index_zero` are equal to the row number of `index_alpha` and `index_zero`, which is 6 in this case (equal to `total_items`). 
 
+`theta` is a `people` by `D` matrix, where `D` is the number of dimensions. It depends on how many traits you assum in your data. 
 
+`delta` is the item threshold parameter vector for the statements. 
 
+`tau` is the item precision parameter vector for the statements. 
+
+`item_index` is a item index matrix:
+```
+item_index = 
+     [,1] [,2]
+[1,]    1    2
+[2,]    3    4
+[3,]    5    6
+```
+used to indicate the item response location of the item response matrix (`response`; `people` by `total_items` matrix). 
+
+`mu` is a zero vector. In this case, `mu = c(0,0)` in R. 
+
+`L` is a cholesky matrix obtained from the LKJ distribution with `eta = 1`. 
+
+`corr` is the resulting correlation matrix of the latent traits (`theta`). 
 
 
 
