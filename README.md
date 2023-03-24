@@ -186,9 +186,9 @@ If you want to fit the code to your data format, you need to
 * give a value to `total_items` (total number of items)
 * specify which alpha element is estimated by `index_alpha`
 
-Take `itemnum = 2` and `testlet = 3`for example,
+Take `itemnum = 2` and `testlet = 3` for example,
 ```
-`index_alpha = `
+index_alpha =
      row col
 [1,]   1   1
 [2,]   3   1
@@ -197,6 +197,20 @@ Take `itemnum = 2` and `testlet = 3`for example,
 [5,]   4   2
 [6,]   6   2
 ```
+which indicates `alpha[1,1]`, `alpha[3,1]`, and so on, are estimated. It also means the rest of alpha elements are not estimated and set equal to zeros:
+```
+index_zero = 
+    row col
+[1,]   2   1
+[2,]   4   1
+[3,]   6   1
+[4,]   1   2
+[5,]   3   2
+[6,]   5   2
+```
+`index_alpha` and `index_zero` are equal to the row number of `index_alpha` and `index_zero`, which is 6 in this case. 
+
+
 
 
 
