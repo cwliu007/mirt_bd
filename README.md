@@ -65,7 +65,7 @@ Following are the arguments of the main function: `mcmc_main`
 * For internal experiments, which can be omitted.
 
 `get_item_fit = TRUE`:
-* Obtain outfit and infit for items. (Effective for model = 1 or 2)
+* Obtain outfit and infit for items. (Effective for model = 2)
 
 `waic_nimble = TRUE`:
 * Obtain the WAIC from NIMBLE.
