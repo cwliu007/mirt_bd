@@ -181,7 +181,7 @@ code <- nimbleCode({
   }
 })
 ```
-If you want to fit the code to your data format, you need to
+If you want to fit the code to your dataset, you need to
 * give a value to `people` (number of respondents)
 * give a value to `total_items` (total number of items)
 * specify which alpha element is estimated by `index_alpha`
@@ -210,6 +210,8 @@ index_zero =
 ```
 `index_alpha` and `index_zero` are equal to the row number of `index_alpha` and `index_zero`, which is 6 in this case (equal to `total_items`). 
 
+`M` and `N` are the shape parameters of the beta distribution. 
+
 `theta` is a `people` by `D` matrix, where `D` is the number of dimensions. It depends on how many traits you assum in your data. 
 
 `delta` is the item threshold parameter vector for the statements. 
@@ -228,9 +230,10 @@ used to indicate the item response location of the item response matrix (`respon
 
 `mu` is a zero vector. In this case, `mu = c(0,0)` in R. 
 
-`L` is a cholesky matrix obtained from the LKJ distribution with `eta = 1`. 
+`L` is a cholesky matrix obtained from the LKJ distribution with `eta = 1` for correlation matrix of the latent traits. So `corr` is the resulting correlation matrix of the latent traits (`theta`). 
 
-`corr` is the resulting correlation matrix of the latent traits (`theta`). 
+`L22` is a cholesky matrix obtained from the LKJ distribution with `eta = 1` for the correlations between items (statements). So `sigma_item_cor` is the resulting correlation matrix. 
 
+We also need specify the priors for `delta` and `tau`. `E1` and `D1` are temporary variable to construct the half-Chauchy prior for `alpha`. 
 
-
+Notice that the NIMBLE code for the LNM is similar in logic, so omitted. 
