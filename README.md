@@ -1,4 +1,4 @@
-# Instructions: (Updating the code ...)
+# Instructions:
 Instructions for running the models proposed in my paper: *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data* (under review). 
 
 # Step 1:
