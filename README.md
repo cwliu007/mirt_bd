@@ -184,7 +184,10 @@ code <- nimbleCode({
 If you want to fit the code to your data format, you need to
 * give a value to `people` (number of respondents)
 * give a value to `total_items` (total number of items)
-* specify which alpha element is estimated by `index_alpha`; for `itemnum = 2` and `testlet = 3`example,
+* specify which alpha element is estimated by `index_alpha`
+
+Take `itemnum = 2` and `testlet = 3`for example,
+```
 `index_alpha = `
      row col
 [1,]   1   1
@@ -193,6 +196,7 @@ If you want to fit the code to your data format, you need to
 [4,]   2   2
 [5,]   4   2
 [6,]   6   2
+```
 
 
 
