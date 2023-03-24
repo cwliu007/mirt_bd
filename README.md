@@ -144,5 +144,41 @@ Compare the parameter estimates with true values if simulation study was carried
 
 
 # Notes:
-If you have testlets that have different number of items, the NIMBLE code of `multidimensional beta model correlations.R` needs to be further modified accordingly.
+If you have testlets that have different number of items, the NIMBLE code of `multidimensional beta model correlations.R` needs to be further modified accordingly. For instance, the following is the NIMBLE code for the BCM:
+```
+code <- nimbleCode({
+
+  for(n in 1:people){
+    for (k in 1:total_items){
+      M[n,k] <- exp(((inprod(alpha[k,1:D],theta[n,1:D])-delta[k])+tau[k])/2)
+      N[n,k] <- exp((-(inprod(alpha[k,1:D],theta[n,1:D])-delta[k])+tau[k])/2)
+    }
+    for (k in 1:testlet){
+      response[n,item_index[k,1]:item_index[k,itemnum]] ~ dmbeta(a = M[n,item_index[k,1]:item_index[k,itemnum]], b = N[n,item_index[k,1]:item_index[k,itemnum]], cholesky = L22[1:D,1:D,k], prec_param = 0)
+    }
+    theta[n, 1:D] ~ dmnorm(mu[1:D], cholesky = L[1:D, 1:D], prec_param = 0)
+  }
+  
+  L[1:D,1:D] ~ dlkj_corr_cholesky(eta=eta, p=D)
+  corr[1:D,1:D] <- t(L[1:D,1:D])%*%L[1:D,1:D] # correlation matrix
+  
+  for (k in 1:testlet){
+    L22[1:D,1:D,k] ~ dlkj_corr_cholesky(eta=eta, p=D)
+    sigma_item_cor[1:D,1:D,k] <- t(L22[1:D,1:D,k])%*%L22[1:D,1:D,k] # correlation matrix
+  }
+
+  for (k in 1:total_items){
+    delta[k] ~ dnorm(0,0.0001)
+    tau[k] ~  dnorm(0,0.0001)
+  }
+  for (k in 1:index_alpha_length){
+    E1[k] ~ dnorm(0,1)
+    D1[k] ~ dnorm(0,0.0016)
+    alpha[index_alpha[k,1],index_alpha[k,2]] <- pow(E1[k]/D1[k],2) # Half-Cauchy prior
+  }
+  for (k in 1:index_zero_length){
+    alpha[index_zero[k,1],index_zero[k,2]] <- 0
+  }
+})
+```
 
