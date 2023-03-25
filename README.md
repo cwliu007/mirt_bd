@@ -70,7 +70,7 @@ Following are the arguments of the main function: `mcmc_main`
 `waic_nimble = TRUE`:
 * Obtain the WAIC from NIMBLE.
 
-`sigma_item_cor_zeros = FALSE`:
+`sigma_item_cor_values = FALSE` or `sigma_item_cor_values = 0, 0.1, 0.2, ..., 0.9`:
 * For internal experiments, which can be omitted.
 
 `mcmc_length_add = 0`:
