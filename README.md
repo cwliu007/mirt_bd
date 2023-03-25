@@ -147,7 +147,7 @@ Compare the parameter estimates with true values if simulation study was carried
 
 
 # Notes:
-If the testlets in your dataset have varying numbers of items, you will need to modify the NIMBLE code in `multidimensional beta model correlations.R` accordingly. Specifically:
+If the testlets in your dataset have varying numbers of items, you will need to modify the NIMBLE code in `multidimensional beta model correlations.R` accordingly:
 ```
 code <- nimbleCode({
 
