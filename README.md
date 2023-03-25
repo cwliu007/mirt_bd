@@ -1,5 +1,5 @@
 # Instructions:
-Instructions for running the models proposed in my paper: *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data*. 
+If you wish to run the models suggested in my research paper titled *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data*, please follow the instructions below.
 
 # Step 1:
 Install the following R packages: `install.packages(c("mvtnorm","randcorr","MASS","nimble","evaluate","Rcpp","coda"))`
@@ -12,7 +12,7 @@ Download the two files: `multidimensional beta model correlations.R` and `sim_be
 Source the file: `source("multidimensional beta model correlations.R")`
 
 ----
-Following are the arguments of the main function: `mcmc_main`
+The arguments for the main function `mcmc_main` are as follows:
 
 `response`:
 * Item-response matrix (row: *sample size*, column: *number of items* by *number of testlets*). By default, `NULL`. 
@@ -144,7 +144,7 @@ Compare the parameter estimates with true values if simulation study was carried
 
 
 # Notes:
-If you have testlets that have different number of items, the NIMBLE code of `multidimensional beta model correlations.R` needs to be further modified accordingly. For instance, the following is the NIMBLE code for the BCM:
+If the testlets in your dataset have varying numbers of items, you will need to modify the NIMBLE code in `multidimensional beta model correlations.R` accordingly. Specifically:
 ```
 code <- nimbleCode({
 
@@ -197,7 +197,7 @@ index_alpha =
 [5,]   4   2
 [6,]   6   2
 ```
-which indicates `alpha[1,1]`, `alpha[3,1]`, ..., and so on, are estimated. It also means the rest of alpha elements are not estimated and set equal to zeros:
+which indicates `alpha[1,1]`, `alpha[3,1]`, ..., and so on, are estimated. In addition, this implies that the remaining alpha elements are not estimated and are fixed to zero:
 ```
 index_zero = 
     row col
@@ -212,7 +212,7 @@ index_zero =
 
 `M` and `N` are the shape parameters of the beta distribution. 
 
-`theta` is a `people` by `D` matrix, where `D` is the number of dimensions. It depends on how many traits you assum in your data. 
+`theta` is a `people` by `D` matrix, where `D` is the number of dimensions. It depends on how many traits you assume for your data. 
 
 `delta` is the item threshold parameter vector for the statements. 
 
@@ -236,4 +236,4 @@ used to indicate the item response location of the item response matrix (`respon
 
 We also need specify the priors for `delta` and `tau`. `E1` and `D1` are temporary variable to construct the half-Chauchy prior for `alpha`. 
 
-Notice that the NIMBLE code for the LNM is similar in logic, so omitted. 
+Given that the logic behind the NIMBLE code for the LNM is similar, it has been omitted. 
