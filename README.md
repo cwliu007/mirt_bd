@@ -1,5 +1,5 @@
 # Instructions:
-If you wish to run the models suggested in my research paper titled *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data*, please follow the instructions below.
+Let's follow the instructions below to run the models proposed in my research paper titled *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data*
 
 # Step 1:
 Install the following R packages: `install.packages(c("mvtnorm","randcorr","MASS","nimble","evaluate","Rcpp","coda"))`
