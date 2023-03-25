@@ -239,4 +239,4 @@ used to indicate the item response location of the item response matrix (`respon
 
 We also need specify the priors for `delta` and `tau`. `E1` and `D1` are temporary variable to construct the half-Chauchy prior for `alpha`. 
 
-Given that the logic behind the NIMBLE code for the LNM is similar, it has been omitted. 
+Given that the logic behind the NIMBLE code for the LNM is similar, see the code in `multidimensional beta model correlations.R`. 
