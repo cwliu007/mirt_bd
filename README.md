@@ -105,7 +105,7 @@ out = mcmc_main(response = d$response  # <---- your data matrix
                 ,get_item_fit=TRUE
                 ,waic_nimble=TRUE)
 ```
-* If you want to analyze your data, just replace `d$response` with your data. Make sure to change `testlet`, `itemnum`, and other arguments if needed. 
+# If you want to analyze your data, just replace `d$response` with your data. Make sure to change `testlet`, `itemnum`, and other arguments if needed. 
 
 Check the non-convergence of MCMC chains by `gelman.diag` function from `coda` when `nchains` > 1:
 ```
