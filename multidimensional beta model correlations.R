@@ -3,10 +3,51 @@ nimble_functions <- function(){
   
   require("nimble")
   
- 
+  # multivariate Gaussian copula (density)
+  dcopula_normal <- nimbleFunction(
+    run = function(target=double(1),par = character(0, default="par"),u = double(1), SIGMA = double(2), prec_param = integer(0, default = 0),
+                   log = integer(0, default = 0)) {
+      returnType(double(0))
+      if (par=="u"){
+        u = target
+      }else if (par=="SIGMA"){
+        SIGMA[lower.tri(SIGMA,diag=T)] = target
+        SIGMA[upper.tri(SIGMA)] = SIGMA[lower.tri(SIGMA)]
+      }
+      # u is a random variable within [0,1]
+      x = qnorm(u)
+      term1 = sum(dnorm(x, log=TRUE))
+      cholesky = chol(SIGMA)
+      term2 = dmnorm_chol(x = x, mean = rep(0, dim(cholesky)[1]), cholesky = cholesky, prec_param = prec_param, log = TRUE)
+      logp = term2 - term1
+      if(log) return(logp)
+      else return(exp(logp))
+    })
+  # Gaussian copula (cumulative distribution)
+  pcopula_normal <- nimbleFunction(
+    run = function(u = double(1), mu = double(1), SIGMA = double(2)) {
+      returnType(double(0))
+      # qnorm function: Transforming (0,1) to normal scale (-Inf Inf)
+      x <- qnorm(u)
+      return(mvtnorm::pmvnorm(upper=x, mean = mu, sigma = SIGMA)[1])
+  })
   
   
-  # density: multivariate beta copula density: Equation 19
+  # test
+  # u = c(0.4,0.6) # u is a random variable within [0,1]
+  u = c(0.3667176, 0.2140250)
+  MU = rep(0,length(u))
+  corr = 0.5
+  SIGMA = matrix(corr,length(u),length(u))
+  diag(SIGMA) = 1
+  dcopula_normal(target=u,par="u",u=u, SIGMA = SIGMA, log=FALSE)
+  pcopula_normal(u, MU, SIGMA)
+  
+  # NOTE:
+  # upper-triangular Cholesky factor of either the precision matrix (when prec_param is TRUE) or covariance matrix (otherwise).
+
+  
+  # density: multivariate beta copula density
   dmbeta <- nimbleFunction(
     run = function(x = double(1), a = double(1), b = double(1), cholesky = double(2), prec_param = integer(0, default = 0),
                    log = integer(0, default = 0)) {
@@ -43,9 +84,7 @@ nimble_functions <- function(){
   
   assign('dmbeta', dmbeta, envir = .GlobalEnv)
   assign('pmbeta', pmbeta, envir = .GlobalEnv)
-  
-
-  
+ 
   
   
   # random number: multivariate beta copula distribution
@@ -67,10 +106,7 @@ nimble_functions <- function(){
   rmbeta(n=1, a=a, b=b, cholesky = chol(SIGMA))
   
   assign('rmbeta', rmbeta, envir = .GlobalEnv)
-  
-
-  
-  
+ 
   
  
   
@@ -210,7 +246,6 @@ nimble_functions <- function(){
   assign('qlogitnormal_multivariate', qlogitnormal_multivariate, envir = .GlobalEnv)
   
   
-
   
   
   
@@ -227,8 +262,7 @@ nimble_functions <- function(){
   
   assign('rlogitnormal', rlogitnormal, envir = .GlobalEnv)
   
-
-
+  
   
   
   uppertri_mult_diag <- nimbleFunction(
@@ -352,11 +386,11 @@ beta_M_N <- function(obs, model, item_index, samples_matrix, keep,people,itemnum
   cov_obs <- cov_rep <- NULL
   
   
-
   
   
   
 
+  
   # rcpp
   print("Compiling Rcpp code...")
   Rcpp::sourceCpp("sim_beta.cpp")
@@ -400,11 +434,6 @@ beta_M_N <- function(obs, model, item_index, samples_matrix, keep,people,itemnum
       }
     }
   }
-  
-  
-  # t = seq(from=0, to = quantile(r_Cox_Snell, probs = 0.9, na.rm = FALSE) , length.out=10)
-  # Cox_Snell_out <- Cox_Snell_fit(t,r_Cox_Snell,eap_r_Cox_Snell)
-  
   
 
   
@@ -491,7 +520,6 @@ mcmc_main <- function(response=NULL
     response = readRDS(file = "y01_real.rds")
     
 
-    
     testlet = 5
 
     people = nrow(response)
@@ -516,8 +544,6 @@ mcmc_main <- function(response=NULL
     y = qlogis(response) # same with log(x/(1-x))
   }
   
-  # response[which(response <= 0.9999 & response > 0.99)] = 0.99
-  # response[which(response >= 0.0001 & response < 0.01)] = 0.01
 
   # use_real_data_pars != -1 means to use item estimates from real data analysis
   if (use_real_data_pars != -1){
@@ -556,6 +582,7 @@ mcmc_main <- function(response=NULL
   # model = 1 # multidimensional beta model (no correlation)
   # model = 2 # beta copula with item correlations
   # model = 3 # beta copula with no item correlations
+  # model = 4 # correlated traits–correlated uniqueness model (CTCUM; Marsh, 1989)
 
   if (model == 0){
     model_is = "logit-normal model"
@@ -565,6 +592,8 @@ mcmc_main <- function(response=NULL
     model_is = "beta copula with item correlations"
   }else if (model == 3){
     model_is = "beta copula with no item correlations"
+  }else if (model == 4){
+    model_is = "CTCUM"
   }
   print(model_is)
   
@@ -597,7 +626,7 @@ mcmc_main <- function(response=NULL
     
     # ONLY work for two items in each testlet
     if ( is.numeric(sigma_item_cor_values) ){
-      if (model == 0 | model == 2){
+      if (model == 0 |model == 2){
         sigma_item_cor[[k]][upper.tri(sigma_item_cor[[k]])] = sigma_item_cor_values
         sigma_item_cor[[k]][lower.tri(sigma_item_cor[[k]])] = sigma_item_cor_values
       }
@@ -620,9 +649,9 @@ mcmc_main <- function(response=NULL
   prior_tau$mu = 0
   prior_tau$sd = 0.3
   
-  if (simulation == TRUE & use_real_data_pars_prior == TRUE){
+  if (simulation == TRUE & use_real_data_pars_prior == TRUE & model!=4){
     
-    if (model==2 & file.exists("use_real_data_pars_prior_BCM.rds")){
+    if ( (model==2 | model==1 | model==3) & file.exists("use_real_data_pars_prior_BCM.rds")){
       real_est = readRDS("use_real_data_pars_prior_BCM.rds")
     } 
     if (model==0 & file.exists("use_real_data_pars_prior_LNM.rds")){
@@ -660,7 +689,7 @@ mcmc_main <- function(response=NULL
   
   
   
-  if ( (use_real_data_pars == 0 | model == 0) & use_real_data_pars <= 0 ){
+  if ( (use_real_data_pars == 0 | model == 0 | model == 4) & use_real_data_pars <= 0 ){
     # item parameters
     alpha = vector("list",testlet)
     design = vector("list",testlet)
@@ -902,7 +931,7 @@ mcmc_main <- function(response=NULL
   
   
   if (simulation == TRUE & is.null(response)){
-    if ( (use_real_data_pars == 0 | model == 0) & use_real_data_pars <= 0){
+    if ( (use_real_data_pars == 0 | model == 0 | model == 4) & use_real_data_pars <= 0){
       
       res = vector("list",testlet)
       for (k in 1:testlet){
@@ -925,8 +954,12 @@ mcmc_main <- function(response=NULL
       }
       y = do.call(cbind,res)
       
-      # inverse logit function: Transforming (-Inf,Inf) to original scale (0,1)
-      response = plogis(y) # formula is 1/(1 + exp(-u))
+      if (model == 0){
+        # inverse logit function: Transforming (-Inf,Inf) to original scale (0,1)
+        response = plogis(y) # formula is 1/(1 + exp(-u))
+      }else if (model == 4){
+        response = y
+      }
       
     }else if (use_real_data_pars == 1 | use_real_data_pars == 2 | use_real_data_pars == 3 
                | model == 1 | model == 2 | model == 3){
@@ -968,7 +1001,7 @@ mcmc_main <- function(response=NULL
   
   
 if (return_sim==TRUE){
-  if (model == 0) return(list(response=response
+  if (model == 0 | model == 4) return(list(response=response
                               ,alpha=alpha
                               ,delta=delta
                               ,sigma_item_cor=sigma_item_cor
@@ -976,7 +1009,7 @@ if (return_sim==TRUE){
                               ,theta=theta
                               ,sigma=sigma
                               ))
-  if (model == 1 | model == 2 | model == 3){
+  if (model == 1 | model == 2 | model == 3 | model == 4){
     return(list(response=response
                 ,alpha=alpha
                 ,delta=delta
@@ -1201,7 +1234,46 @@ code <- nimbleCode({
 ')
     
     
+  }else if (model == 4){  # correlated traits–correlated uniqueness model (CTCUM; Marsh, 1989)
     
+    text = paste('
+
+code <- nimbleCode({
+
+  L[1:D,1:D] ~ dlkj_corr_cholesky(eta=eta, p=D)
+  
+  for (k in 1:testlet){
+    Ustar[1:D,1:D,k] ~ dlkj_corr_cholesky(eta=eta, p=D)
+    U[1:D,1:D,k] <- uppertri_mult_diag(Ustar[1:D,1:D,k], sds[item_index[k,1]:item_index[k,D]])
+    sigma_item_cor[1:D,1:D,k] <- t(U[1:D,1:D,k])%*%U[1:D,1:D,k] # covariance matrix
+  }
+  
+
+  for(n in 1:people){
+    for (k in 1:testlet){
+      for (i in 1:itemnum){
+        MU[n,i,k] <- delta[item_index[k,i]] + alpha[item_index[k,i]]*theta[n,i]
+      }
+      response[n,item_index[k,1]:item_index[k,D]] ~ dmnorm(MU[n,1:D,k], cholesky = U[1:D,1:D,k], prec_param = 0)
+    }
+    theta[n, 1:D] ~ dmnorm(mu[1:D], cholesky = L[1:D, 1:D], prec_param = 0)
+  }
+  
+  corr[1:D,1:D] <- t(L[1:D,1:D])%*%L[1:D,1:D] # correlation matrix
+
+  for (k in 1:total_items){
+    E1[k] ~ dnorm(0,1)
+    D1[k] ~ dnorm(0,0.0016)
+    alpha[k] <- pow(E1[k]/D1[k],2) # Half-Cauchy prior
+    delta[k] ~  dnorm(0,0.0001)
+    E2[k] ~ dnorm(0,1)
+    D2[k] ~ dnorm(0,0.0016)
+    sds[k] <- pow(E2[k]/D2[k],2) # Half-Cauchy prior
+  }
+
+})
+
+')
     
   }
   
@@ -1211,7 +1283,7 @@ code <- nimbleCode({
   # nimble settings
   ex = evaluate(text)
   
-  if (model == 0){ # logit-normal model
+  if (model == 0 | model == 4){ # logit-normal model
     
     constants <- list(people=people,itemnum=itemnum
                       ,testlet=testlet,D=D,mu=mu
@@ -1256,8 +1328,9 @@ code <- nimbleCode({
     
     
     # nimble is sensitive to initial values
-    inits <- list(E1=rep(0.5,total_items),D1=rep(0.5,total_items), #alpha=alpha_ini,
-                  delta=rep(0,total_items)
+    inits <- list(E1=rep(0.5,total_items),D1=rep(0.5,total_items) #alpha=alpha_ini,
+                  ,E2=rep(0.5,total_items),D2=rep(0.5,total_items)
+                  ,delta=rep(0,total_items)
                   ,tau=rep(0,total_items)
                   ,L=diag(D)
                   ,L22=L22
@@ -1266,10 +1339,9 @@ code <- nimbleCode({
     
     monitors = c("alpha","delta","tau","corr")
     
-    if (model == 2){
+    if (model == 2 | model == 4){
       monitors = c(monitors, "sigma_item_cor" )
     }
-    
   }
   
 
@@ -1280,7 +1352,7 @@ code <- nimbleCode({
     monitors_add = c()
     monitors_add = c(monitors_add, "theta" )
     
-    if (model == 0 & simulation == FALSE){
+    if ( (model == 0) & simulation == FALSE){
       monitors_add = c(monitors_add, "E1", "D1", "E2", "D2", "Ustar")
     }
     if ( (model == 1 | model == 2 | model == 3) & simulation == FALSE){
@@ -1289,6 +1361,9 @@ code <- nimbleCode({
     }
     if (model == 2 & simulation == FALSE){
       monitors_add = c(monitors_add, "L22")
+    }
+    if ( (model == 4) & simulation == FALSE){
+      monitors_add = c(monitors_add, "E1", "D1", "E2", "D2")
     }
     
     if (simulation == FALSE){
@@ -1328,14 +1403,14 @@ code <- nimbleCode({
 
   # Check if Geweke’s convergence diagnostic is satisfied. If not, continue the MCMC chains. 
   library("coda")
-  sig1 = sig2 = TRUE
-  if (nchains==1) sig2 = FALSE
-  if (nchains>1) sig1 = FALSE
+  sig1_items = sig2_items = TRUE
+  if (nchains==1) sig2_items = FALSE
+  if (nchains>1) sig1_items = FALSE
   cnt = 1
   
   if (nchains>1 & simulation==TRUE & mcmc_length_add != 0) stop("How to use cmodelMCMC$run for multiple chains!")
   
-  while (any(sig1) | any(sig2)){
+  while (any(sig1_items) | any(sig2_items)){
     
     if (cnt >=2) print(paste("Continue MCMC chains it left out. ",cnt," times.",sep=""))
     
@@ -1350,8 +1425,8 @@ code <- nimbleCode({
     }else{
       cmodelMCMC$run(mcmc_length_add, reset = FALSE, resetMV = TRUE, time = FALSE, progressBar = FALSE, nburnin = 0, thin = -1, thin2 = -1, resetWAIC = FALSE) # run for more samples
       ma <- rbind(ma, as.matrix(cmodelMCMC$mvSamples))
-      end = niter + mcmc_length_add
-      start = (end - niter) + 1
+      end = keep + mcmc_length_add
+      start = (end - keep) + 1
       ma = ma[start:end, ]
       samples$samples = ma
       samples$summary <- samplesSummary(samples$samples) # update summary
@@ -1378,15 +1453,32 @@ code <- nimbleCode({
       gelman_item <- gelman.diag(samples_items, confidence = 0.95, transform=FALSE, autoburnin=FALSE, multivariate=FALSE)
       # gelman_theta <- gelman.diag(samples_theta, confidence = 0.95, transform=FALSE, autoburnin=FALSE, multivariate=FALSE)
       
-      value = gelman_item$psrf[,2] # PSRF Upper C.I.
-      sig2 = value[!is.nan(value)] > 1.1
+      value_items = gelman_item$psrf[,2] # PSRF Upper C.I.
+      sig2_items = value_items[!is.nan(value_items)] > 1.1
+      nonconverged_items = value_items > 1.1
+      
+      value_theta = gelman_theta$psrf[,2] # PSRF Upper C.I.
+      sig2_theta = value_theta[!is.nan(value_theta)] > 1.1
+      nonconverged_theta = value_theta > 1.1
     }
     
     # Geweke’s convergence diagnostic
     if (nchains == 1){
-      geweke = geweke.diag(samples_items, frac1=0.1, frac2=0.5)
-      pvalue = pnorm(abs(geweke$z),lower.tail=FALSE)*2 # If pvalue < .05, it does not converge yet!
-      sig1 = pvalue[!is.nan(pvalue)] < .05
+      geweke_items = geweke.diag(samples_items, frac1=0.1, frac2=0.5)
+      pvalue_items = pnorm(abs(geweke_items$z),lower.tail=FALSE)*2 # If pvalue < .05, it does not converge yet!
+      sig1_items = pvalue_items[!is.nan(pvalue_items)] < .05
+      nonconverged_items = pvalue_items < .05
+      
+      geweke_theta = geweke.diag(samples_theta, frac1=0.1, frac2=0.5)
+      pvalue_theta = pnorm(abs(geweke_theta$z),lower.tail=FALSE)*2 # If pvalue < .05, it does not converge yet!
+      sig1_theta = pvalue_theta[!is.nan(pvalue_theta)] < .05
+      nonconverged_theta = pvalue_theta < .05
+    }
+    
+    # Heidelberger and Welch’s convergence diagnostic
+    if (nchains == 1){
+      HW_items = heidel.diag(samples_items[[1]], eps=0.1, pvalue=0.05)
+      HW_theta = heidel.diag(samples_theta[[1]], eps=0.1, pvalue=0.05)
     }
 
     # If analyzing real data and mcmc_length_add==0, we run MCMC once. 
@@ -1395,6 +1487,13 @@ code <- nimbleCode({
     
     cnt = cnt + 1
   }
+  
+  samples$mcmc_length_add_times = cnt
+  samples$nonconverged_items = nonconverged_items
+  samples$nonconverged_theta = nonconverged_theta
+  
+  samples$HW_items = HW_items
+  samples$HW_theta = HW_theta
   
   # combine chains for later use
   if (nchains>=2){
@@ -1440,7 +1539,9 @@ code <- nimbleCode({
       samples$sgddm_rep = mn$sgddm_rep
     }
     
-
+    # # skewness and ...
+    # samples$st = mn$st
+    
     
     samples$prob = mn$prob
     samples$r_Cox_Snell = mn$r_Cox_Snell
@@ -1498,24 +1599,47 @@ code <- nimbleCode({
   
   
   if (simulation == FALSE){
-    # logProb
-    logProb = as.matrix(cmodelMCMC$mvSamples)
+    # keep33 = keep
+    # logProb = as.matrix(cmodelMCMC$mvSamples) # for only one chain
+    
+    keep33 = keep * nchains
+    logProb = samples$samples # for multiple chains
     ind <- grepl('logProb_response', colnames(logProb))
     logProb_response <- logProb[,ind]
-    if (model == 0 | model == 2 | model == 3){
+    if (model == 0 | model == 2 | model == 3 | model == 4){
       # because of mvn, the logProb will have only one value for a vector of responses
-      dim(logProb_response) <- c(keep,people,item_index[testlet,1])
+      dim(logProb_response) <- c(keep33,people,item_index[testlet,1])
       logProb_response = logProb_response[,,item_index[,1]]
     }else if (model == 1){
-      dim(logProb_response) <- c(keep,people,total_items)
+      dim(logProb_response) <- c(keep33,people,total_items)
     }
+    
+    # WAIC : see https://stats.stackexchange.com/questions/331928/dic-waic-in-jags
+    Prob_response = exp(logProb_response)
+    Prob_response_mean = apply(Prob_response,c(2,3),mean)
+    lppd = sum(log(Prob_response_mean)) # log pointwise predictive density
+    # pwaic2
+    pwaic2 = sum(apply(logProb_response,c(2,3),var))
+    # WAIC 2
+    waic2 = -2*(lppd-pwaic2)
 
+    samples$lppd = lppd
+    samples$pwaic2 = pwaic2
+    samples$waic2 = waic2
+    
+    # DIC : see https://stats.stackexchange.com/questions/331928/dic-waic-in-jags
+    logProb_response_sum = apply(-2*logProb_response,1,sum)
+    DIC = mean(logProb_response_sum) + 0.5*var(logProb_response_sum)
+    
+    samples$DIC = DIC
+    
   }
   
+  
 
   
   
-  # # chains >= 2
+
   options(max.print=1000000)
 
   
@@ -1532,6 +1656,7 @@ code <- nimbleCode({
   samples$burnin = burnin
   samples$keep = keep
   samples$item_index = item_index
+  samples$nchains = nchains
   
   if (simulation == TRUE){
     samples$alpha = alpha
