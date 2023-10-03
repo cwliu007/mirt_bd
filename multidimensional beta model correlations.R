@@ -1627,11 +1627,7 @@ code <- nimbleCode({
     samples$pwaic2 = pwaic2
     samples$waic2 = waic2
     
-    # DIC : see https://stats.stackexchange.com/questions/331928/dic-waic-in-jags
-    logProb_response_sum = apply(-2*logProb_response,1,sum)
-    DIC = mean(logProb_response_sum) + 0.5*var(logProb_response_sum)
-    
-    samples$DIC = DIC
+
     
   }
   
