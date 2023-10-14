@@ -1,4 +1,3 @@
-
 nimble_functions <- function(){
   
   require("nimble")
