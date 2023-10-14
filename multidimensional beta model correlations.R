@@ -531,7 +531,7 @@ mcmc_main <- function(response=NULL
     if (itemnum%%1==0){
       
     }else{
-      stop("The item number in each testlet must be the same.")
+      stop("The item number in each testlet must be the same for this NIMBLE code. Varying-item design requires to modify this code.")
     }
 
     D <- itemnum
