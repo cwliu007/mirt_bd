@@ -1,7 +1,7 @@
 # Instructions:
 Let's follow the instructions below to run the models proposed in my research paper entitled *Multidimensional Item Response Theory Models for Testlet-Based Doubly Bounded Data*, published in _Behavior Research Methods_.
 
-Liu, C.-W. (2023). Multidimensional item response theory models for testlet-based doubly bounded data. _Behavior Research Methods_, _XX_(X), XX-XX.
+Liu, C.-W. (2023). Multidimensional item response theory models for testlet-based doubly bounded data. _Behavior Research Methods_, _56_, 5309-5353.
 
 # Step 1:
 Install the following R packages: `install.packages(c("mvtnorm","randcorr","MASS","nimble","evaluate","Rcpp","coda"))`
